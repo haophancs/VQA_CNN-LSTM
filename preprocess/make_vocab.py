@@ -50,7 +50,7 @@ def make_a_vocab(top_answer):
         annotations = data['annotations']
         for label in annotations:
             for ans in label['answers']:
-                vocab = ans['multiple_choice_answer']
+                vocab = ans['answer']
                 if re.search(r'[^\w\s]', vocab):
                     continue
                 answers[vocab] += 1
