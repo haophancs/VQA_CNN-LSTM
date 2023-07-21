@@ -1,7 +1,10 @@
 # data
-
+checkpoints
 data
-*.txt
+logs
+results
+
+*.pth
 *.npy
 *.json
 

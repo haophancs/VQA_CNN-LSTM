@@ -5,18 +5,22 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from PIL import Image
+from dotenv import load_dotenv
 
-INPUT_DIR = '../data'
+load_dotenv()
+
+INPUT_DIR = os.getenv("PREPROCESSED_DIR")
+
 
 class VQADataset(Dataset):
 
-    def __init__(self, input_dir, input_file, max_qu_len = 30, transform = None):
+    def __init__(self, input_dir, input_file, max_qu_len=30, transform=None):
 
         self.input_data = np.load(os.path.join(input_dir, input_file), allow_pickle=True)
-        self.qu_vocab = Vocab(input_dir+'/question_vocabs.txt')
-        self.ans_vocab = Vocab(input_dir+'/annotation_vocabs.txt')
+        self.qu_vocab = Vocab(os.path.join(input_dir, 'question_vocabs.txt'))
+        self.ans_vocab = Vocab(os.path.join(input_dir, 'annotation_vocabs.txt'))
         self.max_qu_len = max_qu_len
-        self.labeled = True if not "test" in input_file else False
+        self.labeled = True
         self.transform = transform
 
     def __getitem__(self, idx):
@@ -43,8 +47,8 @@ class VQADataset(Dataset):
 
         return len(self.input_data)
 
-def data_loader(input_dir, batch_size, max_qu_len, num_worker):
 
+def data_loader(input_dir, batch_size, max_qu_len, num_worker):
     transform = transforms.Compose([
         transforms.ToTensor(),  # convert to (C,H,W) and [0,1]
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))  # mean=0; std=1
@@ -60,6 +64,11 @@ def data_loader(input_dir, batch_size, max_qu_len, num_worker):
             input_dir=input_dir,
             input_file='val.npy',
             max_qu_len=max_qu_len,
+            transform=transform),
+        'test': VQADataset(
+            input_dir=input_dir,
+            input_file='test.npy',
+            max_qu_len=max_qu_len,
             transform=transform)
     }
 
@@ -69,10 +78,11 @@ def data_loader(input_dir, batch_size, max_qu_len, num_worker):
             batch_size=batch_size,
             shuffle=True,
             num_workers=num_worker)
-        for key in ['train', 'val']
+        for key in ['train', 'val', 'test']
     }
 
     return dataloader
+
 
 class Vocab:
 

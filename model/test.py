@@ -6,18 +6,21 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from model import VQAModel
 from build_dataset import VQADataset
+from dotenv import load_dotenv
+
+load_dotenv()
 
 device = torch.device('cuda')
-data_dir = '../data'
-ckpt_dir = '../ckpt/best_model.pth'
-res_dir = '../Results'
+data_dir = os.getenv("PREPROCESSED_DIR")
+ckpt_dir = os.path.join(os.getenv("CHECKPOINT_DIR"), "best_model.pth")
+res_dir = os.getenv("RESULT_DIR")
 
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 FEATURE_SIZE, WORD_EMBED = 1024, 300
 MAX_QU_LEN, NUM_HIDDEN, HIDDEN_SIZE = 30, 2, 512
 
-def test(input_dir, data_type, batch_size, num_worker):
 
+def test(input_dir, data_type, batch_size, num_worker):
     """
     results = [result]
     result{ "question_id": int,
@@ -27,7 +30,7 @@ def test(input_dir, data_type, batch_size, num_worker):
         transforms.ToTensor(),  # convert to (C,H,W) and [0,1]
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))  # mean=0; std=1
     ])
-    vqa_dataset = VQADataset(input_dir, f'{data_type}.npy', max_qu_len=MAX_QU_LEN, transform= transform)
+    vqa_dataset = VQADataset(input_dir, f'{data_type}.npy', max_qu_len=MAX_QU_LEN, transform=transform)
     dataloader = DataLoader(vqa_dataset, batch_size=batch_size, shuffle=False, num_workers=num_worker)
 
     qu_vocab_size = vqa_dataset.qu_vocab.vocab_size
@@ -53,13 +56,14 @@ def test(input_dir, data_type, batch_size, num_worker):
         predict = [vqa_dataset.ans_vocab.idx2word(idx) for idx in predict]
         ans_qu_pair = [{'answer': ans, 'question_id': id} for ans, id in zip(predict, question_id)]
         results.extend(ans_qu_pair)
-        if (idx+1) % 50 == 0:
-            print(f'finishing {data_type} set : {(idx+1)*batch_size} / {len(vqa_dataset)}')
+        if (idx + 1) % 50 == 0:
+            print(f'finishing {data_type} set : {(idx + 1) * batch_size} / {len(vqa_dataset)}')
 
     if not os.path.exists(res_dir): os.makedirs(res_dir)
-    with open(os.path.join(res_dir, f'v2_OpenEnded_mscoco_{data_type}2014_results.json'), 'w') as f:
+    with open(os.path.join(res_dir, f'viclevr_{data_type}_results.json'), 'w') as f:
         f.write(json.dumps(results))
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     test(data_dir, 'val', batch_size=BATCH_SIZE, num_worker=8)
+    test(data_dir, 'test', batch_size=BATCH_SIZE, num_worker=8)

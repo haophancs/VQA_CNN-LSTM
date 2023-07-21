@@ -6,12 +6,13 @@ import torch.nn as nn
 from torch import optim
 from model import VQAModel
 from build_dataset import data_loader
+from dotenv import load_dotenv
 
-DATA_DIR = '../data'
-CKPT_DIR = '../ckpt'
-LOG_DIR = '../log'
+DATA_DIR = os.getenv("PREPROCESSED_DIR")
+CKPT_DIR = os.getenv("CHECKPOINT_DIR")
+LOG_DIR = os.getenv("LOG_DIR")
 
-BATCH_SIZE = 150
+BATCH_SIZE = 32
 MAX_QU_LEN = 30
 NUM_WORKER = 8
 FEATURE_SIZE, WORD_EMBED = 1024, 300
@@ -21,8 +22,8 @@ EPOCH = 50
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-def train():
 
+def train():
     dataloader = data_loader(input_dir=DATA_DIR, batch_size=BATCH_SIZE, max_qu_len=MAX_QU_LEN, num_worker=NUM_WORKER)
     qu_vocab_size = dataloader['train'].dataset.qu_vocab.vocab_size
     ans_vocab_size = dataloader["train"].dataset.ans_vocab.vocab_size
@@ -41,7 +42,6 @@ def train():
 
         model.train()
         for idx, sample in enumerate(dataloader['train']):
-
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
             label = sample['answer'].to(device=device)
@@ -56,7 +56,6 @@ def train():
 
         model.eval()
         for idx, sample in enumerate(dataloader['val']):
-
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
             label = sample['answer'].to(device=device)
@@ -69,23 +68,24 @@ def train():
         for phase in ['train', 'val']:
             epoch_loss[phase] /= len(dataloader[phase])
             with open(os.path.join(LOG_DIR, f'{phase}_log.txt'), 'a') as f:
-                f.write(str(epoch+1) + '\t' + str(epoch_loss[phase]) + '\n')
-        print('Epoch:{}/{} | Training Loss: {train:6f} | Validation Loss: {val:6f}'.format(epoch+1, EPOCH, **epoch_loss))
+                f.write(str(epoch + 1) + '\t' + str(epoch_loss[phase]) + '\n')
+        print('Epoch:{}/{} | Training Loss: {train:6f} | Validation Loss: {val:6f}'.format(epoch + 1, EPOCH,
+                                                                                           **epoch_loss))
 
         scheduler.step()
         early_stop = early_stopping(model, epoch_loss['val'])
-        if (epoch+1) % 5 == 0:
-            torch.save(model.state_dict(), os.path.join(CKPT_DIR, f'model-epoch-{epoch+1}.pth'))
+        if (epoch + 1) % 5 == 0:
+            torch.save(model.state_dict(), os.path.join(CKPT_DIR, f'model-epoch-{epoch + 1}.pth'))
         if early_stop:
-            print(f'>> Early stop at {epoch+1} epoch')
+            print(f'>> Early stop at {epoch + 1} epoch')
             break
 
     end_time = time.time()
     training_time = end_time - start_time
-    print(f">> Finishing training | Training Time:{training_time//60:.0f}m:{training_time%60:.0f}s")
+    print(f">> Finishing training | Training Time:{training_time // 60:.0f}m:{training_time % 60:.0f}s")
+
 
 def early_stopping(model, epoch_loss, patience=7):
-
     early_stop = False
     if not bool(early_stopping.__dict__):
         early_stopping.best_loss = epoch_loss
@@ -105,6 +105,7 @@ def early_stopping(model, epoch_loss, patience=7):
         early_stopping.record_loss = epoch_loss
 
     return early_stop
+
 
 if __name__ == '__main__':
 

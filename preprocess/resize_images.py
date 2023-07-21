@@ -1,6 +1,9 @@
 import os
 import argparse
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def resize_image(image, size):
@@ -11,7 +14,7 @@ def resize_image(image, size):
 def resize_images(input_dir, output_dir, size):
     """Resize the images in 'input_dir' and save into 'output_dir'."""
     for idir in os.scandir(input_dir):
-        if not idir.is_dir():
+        if not idir.is_dir() or idir.name not in ['train', 'val', 'test']:
             continue
         if not os.path.exists(output_dir+'/'+idir.name):
             os.makedirs(output_dir+'/'+idir.name)
@@ -42,10 +45,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_dir', type=str, default="/home/mlworker/Khiem/beit3/datasets/viclevr",
+    parser.add_argument('--input_dir', type=str, default=os.getenv("RAW_IMAGES_DIR"),
                         help='directory for input images (unresized images)')
 
-    parser.add_argument('--output_dir', type=str, default='./data/viclevr/preprocessed/resized_images',
+    parser.add_argument('--output_dir', type=str, default=os.getenv("RESIZED_IMAGES_DIR"),
                         help='directory for output images (resized images)')
 
     parser.add_argument('--image_size', type=int, default=448,

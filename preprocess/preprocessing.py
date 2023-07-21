@@ -4,14 +4,17 @@ import json
 import glob
 import numpy as np
 from tqdm import tqdm
+from dotenv import load_dotenv
 
-image_dir = "./data/viclevr/preprocessed/resized_images"
-annotation_dir = "/home/mlworker/Khiem/beit3/datasets/viclevr/vqa"
-question_dir = "/home/mlworker/Khiem/beit3/datasets/viclevr/vqa"
-output_dir = "./data/viclevr/preprocessed"
+load_dotenv()
+
+image_dir = os.getenv("RESIZED_IMAGES_DIR")
+annotation_dir = os.getenv("ANNOTATION_DIR")
+question_dir = os.getenv("QUESTION_DIR")
+output_dir = os.getenv("PREPROCESSED_DIR")
+
 
 def preprocessing(question, annotation_dir, image_dir, labeled):
-
     with open(question, 'r') as f:
         data = json.load(f)
         questions = data['questions']
@@ -25,7 +28,7 @@ def preprocessing(question, annotation_dir, image_dir, labeled):
         question_dict = {ans['question_id']: ans for ans in annotations}
 
     match_top_ans.unk_ans = 0
-    dataset = [None]*len(questions)
+    dataset = [None] * len(questions)
     for idx, qu in tqdm(enumerate(questions)):
         qu_id = qu['question_id']
         qu_sentence = qu['question']
@@ -51,16 +54,16 @@ def preprocessing(question, annotation_dir, image_dir, labeled):
     print(f'total {match_top_ans.unk_ans} out of {len(questions)} answers are <unk>')
     return dataset
 
-def tokenizer(sentence):
 
+def tokenizer(sentence):
     regex = re.compile(r'(\W+)')
     tokens = regex.split(sentence.lower())
     tokens = [w.strip() for w in tokens if len(w.strip()) > 0]
     return tokens
 
-def match_top_ans(annotation_ans):
 
-    annotation_dir = os.path.join(output_dir + 'annotation_vocabs.txt')
+def match_top_ans(annotation_ans):
+    annotation_dir = os.path.join(output_dir, 'annotation_vocabs.txt')
     if "top_ans" not in match_top_ans.__dict__:
         with open(annotation_dir, 'r') as f:
             match_top_ans.top_ans = {line.strip() for line in f}
@@ -73,8 +76,8 @@ def match_top_ans(annotation_ans):
 
     return annotation_ans, valid_ans
 
-def main():
 
+def main():
     processed_data = {}
     for file in os.listdir(question_dir):
         if 'questions.json' not in file:
@@ -87,6 +90,6 @@ def main():
     for key, value in processed_data.items():
         np.save(os.path.join(output_dir, f'{key}.npy'), np.array(value))
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     main()
