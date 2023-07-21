@@ -48,6 +48,7 @@ def train():
             label = sample['answer'].to(device=device)
             # forward
             logits = model(image, question)
+            print(logits.argmax(-1).shape, label.shape)
             loss = criterion(logits, label)
             epoch_loss['train'] += loss.item()
             # backward
