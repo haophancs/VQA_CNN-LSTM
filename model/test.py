@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-device = torch.device('cuda')
+device = torch.device(os.getenv("DEVICE"))
 data_dir = os.getenv("PREPROCESSED_DIR")
 ckpt_dir = os.path.join(os.getenv("CHECKPOINT_DIR"), "best_model.pth")
 res_dir = os.getenv("RESULT_DIR")
