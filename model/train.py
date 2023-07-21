@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import torch
 import torch.nn as nn
 
@@ -8,9 +9,11 @@ from model import VQAModel
 from build_dataset import data_loader
 from tqdm import tqdm
 from dotenv import load_dotenv
+from sklearn.metrics import classification_report
 
 DATA_DIR = os.getenv("PREPROCESSED_DIR")
 CKPT_DIR = os.getenv("CHECKPOINT_DIR")
+RES_DIR = os.getenv("RESULT_DIR")
 LOG_DIR = os.getenv("LOG_DIR")
 
 BATCH_SIZE = 4
@@ -48,7 +51,6 @@ def train():
             label = sample['answer'].to(device=device)
             # forward
             logits = model(image, question)
-            print(logits.argmax(-1).shape, label.shape)
             loss = criterion(logits, label)
             epoch_loss['train'] += loss.item()
             # backward
@@ -57,6 +59,8 @@ def train():
             optimizer.step()
 
         model.eval()
+        all_predictions = []
+        all_labels = []
         for idx, sample in tqdm(enumerate(dataloader['val'])):
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
@@ -65,6 +69,11 @@ def train():
                 logits = model(image, question)
                 loss = criterion(logits, label)
             epoch_loss['val'] += loss.item()
+            all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
+            all_labels.extend(label.detach().cpu().numpy())
+
+        report = classification_report(all_predictions, all_labels, output_dict=True)
+        print(json.dumps(report, indent=4))
 
         # statistic
         for phase in ['train', 'val']:
@@ -88,6 +97,9 @@ def train():
 
     model.eval()
     test_loss = 0
+    all_predictions = []
+    all_labels = []
+
     for idx, sample in tqdm(enumerate(dataloader['test'])):
         image = sample['image'].to(device=device)
         question = sample['question'].to(device=device)
@@ -96,6 +108,11 @@ def train():
             logits = model(image, question)
             test_loss += criterion(logits, label)
             print('Test Loss:', test_loss / len(dataloader['test']))
+            all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
+            all_labels.extend(label.detach().cpu().numpy())
+
+        report = classification_report(all_predictions, all_labels, output_dict=True)
+        print(json.dumps(report, indent=4))
 
 
 def early_stopping(model, epoch_loss, patience=7):
@@ -126,4 +143,6 @@ if __name__ == '__main__':
         os.makedirs(LOG_DIR)
     if not os.path.exists(CKPT_DIR):
         os.makedirs(CKPT_DIR)
+    if not os.path.exists(RES_DIR):
+        os.makedirs(RES_DIR)
     train()
