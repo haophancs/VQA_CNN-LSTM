@@ -82,7 +82,7 @@ def main():
     for file in os.listdir(question_dir):
         if 'questions.json' not in file:
             continue
-        datatype = 'train' if 'train' in file else ('val' if val in file else 'test')
+        datatype = 'train' if 'train' in file else ('val' if 'val' in file else 'test')
         question = os.path.join(question_dir, file)
         processed_data[datatype] = preprocessing(question, annotation_dir, image_dir, labeled=True)
 
