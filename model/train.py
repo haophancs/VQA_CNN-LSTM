@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch import optim
 from model import VQAModel
 from build_dataset import data_loader
+from tqdm import tqdm
 from dotenv import load_dotenv
 
 DATA_DIR = os.getenv("PREPROCESSED_DIR")
@@ -13,7 +14,7 @@ CKPT_DIR = os.getenv("CHECKPOINT_DIR")
 LOG_DIR = os.getenv("LOG_DIR")
 
 BATCH_SIZE = 4
-MAX_QU_LEN = 40
+MAX_QU_LEN = 60
 NUM_WORKER = 8
 FEATURE_SIZE, WORD_EMBED = 1024, 300
 NUM_HIDDEN, HIDDEN_SIZE = 2, 512
@@ -37,11 +38,11 @@ def train():
 
     print('>> start training')
     start_time = time.time()
-    for epoch in range(EPOCH):
+    for epoch in tqdm(range(EPOCH)):
         epoch_loss = {key: 0 for key in ['train', 'val']}
 
         model.train()
-        for idx, sample in enumerate(dataloader['train']):
+        for idx, sample in tqdm(enumerate(dataloader['train'])):
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
             label = sample['answer'].to(device=device)
@@ -55,7 +56,7 @@ def train():
             optimizer.step()
 
         model.eval()
-        for idx, sample in enumerate(dataloader['val']):
+        for idx, sample in tqdm(enumerate(dataloader['val'])):
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
             label = sample['answer'].to(device=device)
@@ -83,6 +84,17 @@ def train():
     end_time = time.time()
     training_time = end_time - start_time
     print(f">> Finishing training | Training Time:{training_time // 60:.0f}m:{training_time % 60:.0f}s")
+
+    model.eval()
+    test_loss = 0
+    for idx, sample in tqdm(enumerate(dataloader['test'])):
+        image = sample['image'].to(device=device)
+        question = sample['question'].to(device=device)
+        label = sample['answer'].to(device=device)
+        with torch.no_grad():
+            logits = model(image, question)
+            test_loss += criterion(logits, label)
+            print('Test Loss:', test_loss / len(dataloader['test']))
 
 
 def early_stopping(model, epoch_loss, patience=7):
