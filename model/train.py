@@ -70,8 +70,7 @@ def train():
                 loss = criterion(logits, label)
             epoch_loss['val'] += loss.item()
             all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
-            all_labels.extend(label.detach().cpu().numpy())
-
+            all_labels.extend(label.detach().cpu().numpy().tolist())
         report = classification_report(all_predictions, all_labels, output_dict=True)
         print(json.dumps(report, indent=4))
 
@@ -99,7 +98,6 @@ def train():
     test_loss = 0
     all_predictions = []
     all_labels = []
-
     for idx, sample in tqdm(enumerate(dataloader['test'])):
         image = sample['image'].to(device=device)
         question = sample['question'].to(device=device)
@@ -109,8 +107,7 @@ def train():
             test_loss += criterion(logits, label)
             print('Test Loss:', test_loss / len(dataloader['test']))
             all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
-            all_labels.extend(label.detach().cpu().numpy())
-
+            all_labels.extend(label.detach().cpu().numpy().tolist())
         report = classification_report(all_predictions, all_labels, output_dict=True)
         print(json.dumps(report, indent=4))
 
