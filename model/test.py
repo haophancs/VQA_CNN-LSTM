@@ -17,7 +17,7 @@ res_dir = os.getenv("RESULT_DIR")
 
 BATCH_SIZE = 32
 FEATURE_SIZE, WORD_EMBED = 1024, 300
-MAX_QU_LEN, NUM_HIDDEN, HIDDEN_SIZE = 30, 2, 512
+MAX_QU_LEN, NUM_HIDDEN, HIDDEN_SIZE = 60, 2, 512
 
 
 def test(input_dir, data_type, batch_size, num_worker):
