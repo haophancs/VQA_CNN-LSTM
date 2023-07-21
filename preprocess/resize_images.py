@@ -14,7 +14,7 @@ def resize_images(input_dir, output_dir, size):
         if not idir.is_dir():
             continue
         if not os.path.exists(output_dir+'/'+idir.name):
-            os.makedirs(output_dir+'/'+idir.name)    
+            os.makedirs(output_dir+'/'+idir.name)
         images = os.listdir(idir.path)
         n_images = len(images)
         for iimage, image in enumerate(images):
@@ -28,8 +28,8 @@ def resize_images(input_dir, output_dir, size):
             if (iimage+1) % 1000 == 0:
                 print("[{}/{}] Resized the images and saved into '{}'."
                       .format(iimage+1, n_images, output_dir+'/'+idir.name))
-            
-            
+
+
 def main(args):
 
     input_dir = args.input_dir
@@ -42,13 +42,13 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input_dir', type=str, default="/HDD-1_data/dataset/VQA-v2/Images/mscoco",
+    parser.add_argument('--input_dir', type=str, default="/home/mlworker/Khiem/beit3/datasets/viclevr",
                         help='directory for input images (unresized images)')
 
-    parser.add_argument('--output_dir', type=str, default='../data/resize_image',
+    parser.add_argument('--output_dir', type=str, default='./data/viclevr/preprocessed/resized_images',
                         help='directory for output images (resized images)')
 
-    parser.add_argument('--image_size', type=int, default=224,
+    parser.add_argument('--image_size', type=int, default=448,
                         help='size of images after resizing')
 
     args = parser.parse_args()

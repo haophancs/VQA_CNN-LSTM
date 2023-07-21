@@ -3,19 +3,20 @@ import os
 import re
 from collections import defaultdict
 
-src_dir = "/HDD-1_data/dataset/VQA-v2"
-saving_dir = "../preprocess"
+src_dir = "/home/mlworker/Khiem/beit3/datasets/viclevr"
+saving_dir = "./data/viclevr/preprocessed/vocab"
 
 top_answer = 1000
 
 def make_q_vocab():
 
-    dataset = os.listdir(src_dir + '/Questions')
+    dataset = os.listdir(src_dir + '/vqa')
     regex = re.compile(r'(\W+)')
     q_vocab = []
     for file in dataset:
-
-        path = os.path.join(src_dir, 'Questions', file)
+        if 'questions.json' not in file:
+            continue
+        path = os.path.join(src_dir, 'vqa', file)
         with open(path, 'r') as f:
             q_data = json.load(f)
         question = q_data['questions']
@@ -39,15 +40,17 @@ def make_q_vocab():
 def make_a_vocab(top_answer):
 
     answers = defaultdict(lambda :0)
-    dataset = os.listdir(src_dir + '/Annotations')
+    dataset = os.listdir(src_dir + '/vqa')
     for file in dataset:
-        path = os.path.join(src_dir, 'Annotations', file)
+        if 'annotations.json' not in file:
+            continue
+        path = os.path.join(src_dir, 'vqa', file)
         with open(path, 'r') as f:
             data = json.load(f)
         annotations = data['annotations']
         for label in annotations:
             for ans in label['answers']:
-                vocab = ans['answer']
+                vocab = ans['multiple_choice_answer']
                 if re.search(r'[^\w\s]', vocab):
                     continue
                 answers[vocab] += 1
