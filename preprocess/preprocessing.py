@@ -32,7 +32,7 @@ def preprocessing(question, annotation_dir, image_dir, labeled):
         qu_tokens = tokenizer(qu_sentence)
         img_id = qu['image_id']
         img_name = 'vi_clevr_' + subset + '_{:0>6d}.png'.format(img_id)
-        img_path = os.path.join(image_dir, img_name)
+        img_path = os.path.join(image_dir, subset, img_name)
 
         info = {'img_name': img_name,
                 'img_path': img_path,
