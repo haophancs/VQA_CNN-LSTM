@@ -16,6 +16,7 @@ CKPT_DIR = os.getenv("CHECKPOINT_DIR")
 RES_DIR = os.getenv("RESULT_DIR")
 LOG_DIR = os.getenv("LOG_DIR")
 
+BLINDED = True
 BATCH_SIZE = 8
 MAX_QU_LEN = 60
 NUM_WORKER = 8
@@ -33,7 +34,7 @@ def train():
     ans_vocab_size = dataloader["train"].dataset.ans_vocab.vocab_size
 
     model = VQAModel(feature_size=FEATURE_SIZE, qu_vocab_size=qu_vocab_size, ans_vocab_size=ans_vocab_size,
-                     word_embed=WORD_EMBED, hidden_size=HIDDEN_SIZE, num_hidden=NUM_HIDDEN).to(device)
+                     word_embed=WORD_EMBED, hidden_size=HIDDEN_SIZE, num_hidden=NUM_HIDDEN, blinded=BLINDED).to(device)
 
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=GAMMA)
