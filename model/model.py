@@ -47,9 +47,11 @@ class QuEncoder(nn.Module):
 
 class VQAModel(nn.Module):
 
-    def __init__(self, feature_size, qu_vocab_size, ans_vocab_size, word_embed, hidden_size, num_hidden):
+    def __init__(self, feature_size, qu_vocab_size, ans_vocab_size, word_embed, hidden_size, num_hidden, blinded=False):
         super(VQAModel, self).__init__()
-        self.img_encoder = ImgEncoder(feature_size)
+        self.blinded = blinded
+        if not self.blinded:
+            self.img_encoder = ImgEncoder(feature_size)
         self.qu_encoder = QuEncoder(qu_vocab_size, word_embed, hidden_size, num_hidden, feature_size)
         self.dropout = nn.Dropout(0.5)
         self.tanh = nn.Tanh()
@@ -57,9 +59,11 @@ class VQAModel(nn.Module):
         self.fc2 = nn.Linear(ans_vocab_size, ans_vocab_size)
 
     def forward(self, image, question):
-        img_feature = self.img_encoder(image)  # (batchsize, feature_size=1024)
         qst_feature = self.qu_encoder(question)
-        combined_feature = img_feature * qst_feature
+        combined_feature = qst_feature
+        if not self.blinded:
+            img_feature = self.img_encoder(image)  # (batchsize, feature_size=1024)
+            combined_feature = img_feature * combined_feature
         combined_feature = self.dropout(combined_feature)
         combined_feature = self.tanh(combined_feature)
         combined_feature = self.fc1(combined_feature)  # (batchsize, ans_vocab_size=1000)
