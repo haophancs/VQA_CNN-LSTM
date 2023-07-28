@@ -60,8 +60,8 @@ def train():
             optimizer.step()
 
         model.eval()
-        all_predictions = []
-        all_labels = []
+        all_pred_answers = []
+        all_ground_answers = []
         for idx, sample in tqdm(enumerate(dataloader['val'])):
             image = sample['image'].to(device=device)
             question = sample['question'].to(device=device)
@@ -70,10 +70,13 @@ def train():
                 logits = model(image, question)
                 loss = criterion(logits, label)
             epoch_loss['val'] += loss.item()
-            all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
-            all_labels.extend(label.detach().cpu().numpy().tolist())
-        report = classification_report(all_predictions, all_labels, output_dict=True)
+            all_pred_answers.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
+            all_ground_answers.extend(label.detach().cpu().numpy().tolist())
+        report = classification_report(all_pred_answers, all_ground_answers, output_dict=True)
         print(json.dumps(report, indent=4))
+
+        with open('ground_and_pred_answers.json', 'w') as f:
+            json.dump({'ground_answers': all_ground_answers, 'pred_answers': all_pred_answers}, f, indent=4)
 
         # statistic
         for phase in ['train', 'val']:
@@ -97,8 +100,8 @@ def train():
 
     model.eval()
     test_loss = 0
-    all_predictions = []
-    all_labels = []
+    all_pred_answers = []
+    all_ground_answers = []
     for idx, sample in tqdm(enumerate(dataloader['test'])):
         image = sample['image'].to(device=device)
         question = sample['question'].to(device=device)
@@ -107,9 +110,9 @@ def train():
             logits = model(image, question)
             test_loss += criterion(logits, label)
             print('Test Loss:', test_loss / len(dataloader['test']))
-            all_predictions.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
-            all_labels.extend(label.detach().cpu().numpy().tolist())
-        report = classification_report(all_predictions, all_labels, output_dict=True)
+            all_pred_answers.extend(logits.argmax(-1).detach().cpu().numpy().tolist())
+            all_ground_answers.extend(label.detach().cpu().numpy().tolist())
+        report = classification_report(all_pred_answers, all_ground_answers, output_dict=True)
         print(json.dumps(report, indent=4))
 
 
