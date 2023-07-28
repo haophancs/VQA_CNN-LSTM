@@ -76,7 +76,7 @@ def data_loader(input_dir, batch_size, max_qu_len, num_worker):
         key: DataLoader(
             dataset=vqa_dataset[key],
             batch_size=batch_size,
-            shuffle=True,
+            shuffle=key != 'test',
             num_workers=num_worker)
         for key in ['train', 'val', 'test']
     }
