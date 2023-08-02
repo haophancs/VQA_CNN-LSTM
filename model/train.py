@@ -16,7 +16,7 @@ CKPT_DIR = os.getenv("CHECKPOINT_DIR")
 RES_DIR = os.getenv("RESULT_DIR")
 LOG_DIR = os.getenv("LOG_DIR")
 
-BLINDED = True
+BLINDED = False
 BATCH_SIZE = 8
 MAX_QU_LEN = 60
 NUM_WORKER = 8
