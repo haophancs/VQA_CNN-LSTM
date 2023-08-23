@@ -105,6 +105,8 @@ def train():
             all_ground_answers.extend(label.detach().cpu().numpy().tolist())
         report = classification_report(all_pred_answers, all_ground_answers, output_dict=True)
         print(json.dumps(report, indent=4))
+        with open('ground_and_pred_answers.json', 'w') as f:
+            json.dump({'ground_answers': all_ground_answers, 'pred_answers': all_pred_answers}, f, indent=4)
 
 
 def early_stopping(model, epoch_loss, patience=7):
